@@ -1,0 +1,20 @@
+# general
+*~
+
+# environment artifacts
+.venv
+.env
+venv/
+venv.bak/
+.vscode/
+.DS_Store
+
+# python artifacts
+__pycache__
+*.egg-info
+dist/
+*.pyc
+
+# build
+build/
+poetry.lock
