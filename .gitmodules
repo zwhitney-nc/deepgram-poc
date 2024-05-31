@@ -1,0 +1,3 @@
+[submodule "phon_utils"]
+	path = phon_utils
+	url = https://github.com/namecoach-org/phon_utils.git
