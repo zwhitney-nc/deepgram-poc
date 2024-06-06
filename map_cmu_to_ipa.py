@@ -1,24 +1,29 @@
+#ZAW will need to fix this to handle consonant clusters, sometimes we get those in the CMU
+#ZAW can probably use the same behavior as in NCtoIPA
+
+import warnings
 
 # https://en.wikipedia.org/wiki/CMU_Pronouncing_Dictionary
 # https://github.com/margonaut/CMU-to-IPA-Converter/blob/master/cmu_ipa_mapping.rb
 # https://en.wikipedia.org/wiki/ARPABET
 
+#TODO: update these to match NCtoIPA characters
 CMU_IPA_MAPPING = {
   "b": "b",
-  "ch": "ʧ",
+  "ch": "t͡ʃ",
   "d": "d",
   "dh": "ð",
   "f": "f",
   "g": "g",
   "hh": "h",
-  "jh": "ʤ",
+  "jh": "d͡ʒ",
   "k": "k",
   "l": "l",
   "m": "m",
   "n": "n",
   "ng": "ŋ",
   "p": "p",
-  "r": "r",
+  "r": "ɹ",
   "s": "s",
   "sh": "ʃ",
   "t": "t",
@@ -100,6 +105,33 @@ CMU_IPA_MAPPING = {
 }
 
 def cmu_to_ipa(cmu):
+
+    ipa = ''
+    
+    i = 0
+    while i < len(cmu):
+        longest_match = ""
+        for key in CMU_IPA_MAPPING.keys():
+            if cmu[i:i+len(key)] == key:
+                if len(key) > len(longest_match):
+                    longest_match = key
+
+        if longest_match:
+            ipa += CMU_IPA_MAPPING[longest_match]
+
+            i += len(longest_match)
+        else:
+            warnings.warn(
+                f"WARNING - possible invalid CMU, see substring {cmu[i:]}"
+            )
+            
+            i += 1
+
+    return ipa
+
+
+#ZAW we probably don't need this anymore?
+def cmu_to_ipa_substring(cmu):
     if cmu in CMU_IPA_MAPPING:
         ipa= CMU_IPA_MAPPING[cmu]
     else:

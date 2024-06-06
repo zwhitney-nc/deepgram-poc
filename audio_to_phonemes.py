@@ -27,6 +27,7 @@ def phonemes_from_url(audio_url):
     NOTE: due to limitations in Deepgram, this will not include stress
     marking or word boundaries
     """
+    breakpoint()
     deepgram = DeepgramClient(API_KEY)
 
     options = PrerecordedOptions(

@@ -90,11 +90,15 @@ def phonemes_from_url(audio_url):
 
 ## apply the deepgram transcription to testing set
 
-import audio_to_phonemes
+from audio_to_phonemes import phonemes_from_url
 
 import gspread
 import pandas as pd
 from gspread_dataframe import get_as_dataframe, set_with_dataframe
+
+from phon_utils.NCtoIPA import convert_NC_to_IPA
+
+import textdistance
 
 
 URL_DICT = {
@@ -104,10 +108,58 @@ URL_DICT = {
 #load from gsheets
 gc = gspread.oauth()
 
-judging = gc.open_by_url(judgingSheetURL)
-judgingTab = judging.worksheet(judgingTabName)
-postProcessing = gc.open_by_url(ppSheetURL)
-ppTab = postProcessing.worksheet(ppTabName)
+testing = gc.open_by_url(URL_DICT['testing'])
+testTab = testing.worksheet('Deepgram Testing')
 
 # pull into dataframe
-df = get_as_dataframe(judgingTab)
+df = get_as_dataframe(testTab)
+
+# convert existing Namecoach phonetic to IPA
+df['Namecoach IPA'] = df['Namecoach Phonetic'].apply(
+    lambda x: convert_NC_to_IPA(x)
+)
+
+# convert each URL to IPA with deepgram
+df['Deepgram IPA - raw'] = df['Namecoach Source'].apply(
+    lambda x: phonemes_from_url(x)
+)
+    
+
+# compare deepgram IPA to NC IPA (clean up your IPA first)
+df['Text Distance between IPAs'] = df.apply(
+    lambda x: textdistance.levenshtein(x['Namecoach IPA'],
+                                       x['Deepgram IPA - cleaned']),
+    axis = 1,
+)
+
+## fixing up different IPA characters
+
+import gspread
+import pandas as pd
+from gspread_dataframe import get_as_dataframe, set_with_dataframe
+
+CONVERSION_DICT = {
+    'r': 'ɹ',
+    'ʧ': 't͡ʃ',
+    'ʤ': 'd͡ʒ',
+}
+
+URL_DICT = {
+    'testing': 'https://docs.google.com/spreadsheets/d/1BKHSTnqvgL29Y7Tn7cuuksIrOJTtIncayAZ9gy9pTw0/edit#gid=1255253900',
+}
+
+gc = gspread.oauth()
+
+testing = gc.open_by_url(URL_DICT['testing'])
+testTab = testing.worksheet('Deepgram Testing')
+
+df = get_as_dataframe(testTab)
+df.dropna(axis=0, how='all', inplace=True)
+
+for k, v in CONVERSION_DICT.items():
+    df['Deepgram IPA - cleaned'] = df['Deepgram IPA - cleaned'].str.replace(k, v)
+
+set_with_dataframe(testTab,
+                   pd.DataFrame(df['Deepgram IPA - cleaned']),
+                   col = 8)
+                                
