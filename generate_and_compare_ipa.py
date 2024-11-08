@@ -88,7 +88,7 @@ def compare_ipas(sheet_url = URL_DICT['testing'],
     df = df.fillna('').infer_objects(copy=False)
     
     if ignoreStressAndSyls:
-        breakpoint()
+        #breakpoint()
         col1_temp = col1 + '_noStressNoSyl'
         df[col1_temp] = df[col1]
         df[col1_temp] = df[col1_temp].str.replace('[.ˈˌ]', '', regex=True)
